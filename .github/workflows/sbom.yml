@@ -1,31 +1,37 @@
-name: Generate SBOM
+name: Generate CycloneDX SBOM
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches:
+      - main # Or your default branch, e.g., master
+  workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
-  generate-sbom:
+  build-and-sbom:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Or a version compatible with Juice Shop
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      run: npm install
 
-      - name: Generate SBOM with CycloneDX
-        run: npx @cyclonedx/bom -o sbom.json
+    - name: Generate CycloneDX SBOM
+      # Installs cyclonedx-npm globally and then generates the SBOM
+      # Ensure you have the correct Node.js version and npm installed.
+      run: |
+        npm install -g @cyclonedx/cyclonedx-npm
+        cyclonedx-npm --output-file sbom.json
 
-      - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: juice-shop-sbom
-          path: sbom.json
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: juice-shop-sbom
+        path: sbom.json
+        retention-days: 5
